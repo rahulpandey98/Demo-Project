@@ -18,6 +18,7 @@ const Tab1Screen = () => {
   const users = useSelector(selectUsers);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
+  const favorites = useSelector((state: any) => state.user.favorites);
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
@@ -37,16 +38,6 @@ const Tab1Screen = () => {
     dispatch(fetchUsersRequest());
   };
 
-  const isFavorite = (userId: any) => {
-    return (
-      (users.find((user: any) => user.id === userId) as any)?.favorite ?? false
-    );
-  };
-
-  // const isFavorite = (userId: any) => {
-  //   return favorites.includes(userId);
-  // };
-
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     if (offsetY <= 0) {
@@ -54,6 +45,8 @@ const Tab1Screen = () => {
       handleRefresh();
     }
   };
+
+  const isFavorite = (userId: any) => favorites.includes(userId);
 
   return (
     <ScrollView
@@ -64,16 +57,9 @@ const Tab1Screen = () => {
       <View style={styles.container}>
         <View style={styles.row}>
           {loading ? (
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                alignContent: 'center',
-              }}>
+            <View style={styles.reloadContainer}>
               <Icon name="reload1" size={30} color={'black'} />
             </View>
-          ) : error ? (
-            <Text>Error: {error}</Text>
           ) : (
             users.map((item: any) => (
               <View style={styles.box} key={item.id}>
@@ -83,7 +69,12 @@ const Tab1Screen = () => {
                     style={styles.image}
                   />
                   <View>
-                    <Text>
+                    <Text
+                      style={{
+                        fontWeight: 'bold',
+                        color: 'black',
+                        fontSize: 15,
+                      }}>
                       {item.name.first} {item.name.last}
                     </Text>
                     <View style={{flexDirection: 'row'}}>
@@ -98,18 +89,16 @@ const Tab1Screen = () => {
 
                 <TouchableOpacity
                   style={styles.starButton}
-                  onPress={() => {
-                    if (isFavorite(item.id)) {
-                      handleUnselectFavorite(item.id);
-                    } else {
-                      handleToggleFavorite(item.id);
-                    }
-                  }}>
-                  {isFavorite(item.id) ? (
-                    <Icon name="star" size={30} color={'#FF3659'} />
-                  ) : (
-                    <Icon name="staro" size={30} color={'#FF3659'} />
-                  )}
+                  onPress={() =>
+                    isFavorite(item.id)
+                      ? handleUnselectFavorite(item.id)
+                      : handleToggleFavorite(item.id)
+                  }>
+                  <Icon
+                    name={isFavorite(item.id) ? 'star' : 'staro'}
+                    size={30}
+                    color="#FF3659"
+                  />
                 </TouchableOpacity>
               </View>
             ))
@@ -131,7 +120,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   box: {
-    height: 100,
+    height: 80,
     backgroundColor: 'white',
     marginHorizontal: 15,
     borderRadius: 30,
@@ -149,15 +138,20 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginRight: 10,
+    // marginRight: 10,
+    right: 20,
   },
   starButton: {
     alignSelf: 'flex-end',
-    marginBottom: 25,
-    // Align item to the right
+    marginBottom: 15,
   },
   scrollViewContent: {
     flexGrow: 1,
+  },
+  reloadContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignContent: 'center',
   },
 });
 

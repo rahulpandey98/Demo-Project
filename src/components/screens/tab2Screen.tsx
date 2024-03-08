@@ -17,16 +17,12 @@ const Tab2Screen = () => {
   const users = useSelector(selectUsers);
   const dispatch = useDispatch();
   const scrollViewRef = useRef(null);
-  // Filter users based on favorites list
   const favoriteUsers = users.filter((user: any) =>
     favorites.includes(user.id),
   );
-  const isFavorite = (userId: any) => {
-    return users.find((user: any) => user.id === userId)?.favorite ?? false;
-  };
+
   const handleUnselectFavorite = (userId: any) => {
     dispatch(removeFromFavorites(userId));
-    console.log(userId, '>>>>');
   };
 
   const handleRefresh = () => {
@@ -35,7 +31,6 @@ const Tab2Screen = () => {
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     if (offsetY <= 0) {
-      // User has scrolled to the top
       handleRefresh();
     }
   };
@@ -46,39 +41,45 @@ const Tab2Screen = () => {
       scrollEventThrottle={16}
       contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.container}>
-        {favoriteUsers.map((item: any) => (
-          <View style={styles.box} key={item.id}>
-            <View style={styles.userInfo}>
-              <Image
-                source={{uri: item.picture.thumbnail}}
-                style={styles.image}
-              />
-              <View>
-                <Text>
-                  {item.name.first} {item.name.last}
-                </Text>
-                <View style={{flexDirection: 'row'}}>
-                  <Icons name="location" size={20} />
+        {favoriteUsers.length > 0 ? (
+          favoriteUsers.map((item: any) => (
+            <View style={styles.box} key={item.id}>
+              <View style={styles.userInfo}>
+                <Image
+                  source={{uri: item.picture.thumbnail}}
+                  style={styles.image}
+                />
+                <View>
                   <Text>
-                    {item?.location.state.slice(0, 10)},{' '}
-                    {item?.location.country}
+                    {item.name.first} {item.name.last}
                   </Text>
+                  <View style={{flexDirection: 'row'}}>
+                    <Icons name="location" size={20} />
+                    <Text>
+                      {item?.location.state.slice(0, 10)},{' '}
+                      {item?.location.country}
+                    </Text>
+                  </View>
                 </View>
               </View>
+              <TouchableOpacity
+                style={styles.starButton}
+                onPress={() => {
+                  handleUnselectFavorite(item.id);
+                }}>
+                <Icon name="star" size={30} color={'#FF3659'} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.starButton}
-              onPress={() => {
-                handleUnselectFavorite(item.id); // Call handleUnselectFavorite
-              }}>
-              <Icon
-                name="star"
-                size={30}
-                color={isFavorite(item.id) ? '#FF3659' : '#FF3659'}
-              />
-            </TouchableOpacity>
+          ))
+        ) : (
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Text style={{fontSize: 20}}>No favorite items</Text>
           </View>
-        ))}
+        )}
       </View>
     </ScrollView>
   );
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   box: {
-    height: 100,
+    height: 80,
     backgroundColor: 'white',
     marginHorizontal: 15,
     borderRadius: 30,
@@ -113,11 +114,12 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginRight: 20,
+
+    right: 20,
   },
   starButton: {
     alignSelf: 'flex-end',
-    marginBottom: 20,
+    marginBottom: 15,
     // Align item to the right
   },
   scrollViewContent: {
